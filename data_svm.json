@@ -1,0 +1,11 @@
+{
+    "svm_usr": "your_username_here",
+    "svm_pwd": "your_password_here",
+    "slack_webhook": "https://slack_webhook_url_here",
+    "slack_payload": {
+        "text": "svm-activity: ",
+        "username": "Pokemonitor",
+        "icon_emoji": ":radioactive_sign:",
+        "channel": "#general"
+  }
+}
