@@ -1,5 +1,5 @@
 # svm-slack-notifications
-Modules not installed by default:
+Modules not installed with python 3.5 by default:
 – aiohttp
 – bs4
 
