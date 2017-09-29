@@ -8,6 +8,8 @@ from bs4 import BeautifulSoup
 
 loop = asyncio.get_event_loop()
 sem = asyncio.Semaphore(5)
+session = aiohttp.ClientSession(connector=aiohttp.TCPConnector(
+        verify_ssl=False))
 with open(os.path.join(os.path.dirname(__file__), 'data_svm.json'),
           'r', encoding='utf-8') as json_file:
     json_data = json.loads(json_file.read())
@@ -24,22 +26,19 @@ async def post_slack(event):
     payload_text['text'] = '{}{}!'.format(payload_text['text'], event)
     payload = json.dumps(payload_text)
     try:
-        async with aiohttp.ClientSession(connector=aiohttp.TCPConnector(
-                verify_ssl=False)) as session:
-            async with sem, session.post(webhook, data=payload) as response:
-                return await response.read()
+        async with sem, session.post(webhook, data=payload) as response:
+            return await response.read()
     except:
         report.write('')
 
 
 async def get_url(urlparse, params):
     try:
-        async with aiohttp.ClientSession() as session:
-            async with sem, session.post(urlparse, data=params) as response:
-                if response.status == 200:
-                    return await response.read()
-                else:
-                    return 'ERROR'
+        async with sem, session.post(urlparse, data=params) as response:
+            if response.status == 200:
+                return await response.read()
+            else:
+                return 'ERROR'
     except aiohttp.client_exceptions.ClientConnectorError as exc:
         print(exc)
         return exc
@@ -65,10 +64,12 @@ try:
                 and 'NavigableString' in str(event.__class__)):
             hits += 1
             loop.run_until_complete(post_slack(event.string))
-except AttributeError:
-    report.write('{}: nothing new\n'.format(now))
+except Exception:
+    pass
 if hits > 0:
     report.write('{}: new biz!\n'.format(now))
 else:
     report.write('{}: nothing new\n'.format(now))
 report.close()
+session.close()
+loop.close()
