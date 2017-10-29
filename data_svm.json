@@ -1,11 +1,19 @@
 {
-    "svm_usr": "your_username_here",
-    "svm_pwd": "your_password_here",
-    "slack_webhook": "https://slack_webhook_url_here",
+    "svm_usr": "your_svm_username_here",
+    "svm_pwd": "your_svm_password_here",
+    "slack_notifications" : true,
+    "slack_webhook": "https://hooks.slack.com/services/slack/webhook/here",
     "slack_payload": {
         "text": "svm-activity: ",
         "username": "Pokemonitor",
-        "icon_emoji": ":radioactive_sign:",
-        "channel": "#general"
+        "icon_emoji": ":pokeball:",
+        "channel": "#svm-activity"
+  },
+  "gmail_notigications": true,
+  "gmail_usr": "firstname.surname@gmail.com",
+  "gmail_app_pwd": "generated_app_password_here",
+  "email_settings": {
+      "from": "Firstname Surname (example@gmail.com)",
+      "to": "notification-recipient@gmail.com"
   }
 }
