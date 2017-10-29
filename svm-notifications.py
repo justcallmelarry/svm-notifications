@@ -90,7 +90,7 @@ except Exception:
     pass
 
 if hits > 0:
-    report.write('{}: new biz!\n'.format(now))
+    report.write('{}: new activity!\n'.format(now))
 else:
     report.write('{}: nothing new\n'.format(now))
 report.close()
