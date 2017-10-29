@@ -20,7 +20,7 @@ try:
             webhook = json_data.get('slack_webhook')
             payload_text = json_data.get('slack_payload')
             original_text = payload_text['text']
-        gmail_notifications = json_data.get('gmail_notigications')
+        gmail_notifications = json_data.get('gmail_notifications')
         if gmail_notifications is True:
             gmail_usr = json_data.get('gmail_usr')
             gmail_app_pwd = json_data.get('gmail_app_pwd')

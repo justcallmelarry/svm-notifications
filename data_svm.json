@@ -9,7 +9,7 @@
         "icon_emoji": ":pokeball:",
         "channel": "#svm-activity"
   },
-  "gmail_notigications": true,
+  "gmail_notifications": true,
   "gmail_usr": "firstname.surname@gmail.com",
   "gmail_app_pwd": "generated_app_password_here",
   "email_settings": {
