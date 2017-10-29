@@ -18,6 +18,7 @@ with open(os.path.join(os.path.dirname(__file__), 'data_svm.json'), 'r', encodin
     original_text = payload_text['text']
 report = open(os.path.join(os.path.dirname(__file__), 'report_svm.txt'), 'a+')
 keywords = ['biz', 'betalt']
+keywords_auktion = ['bud']
 
 
 async def post_slack(event):
@@ -59,6 +60,15 @@ response = loop.run_until_complete(get_url(url, params))
 the_page = BeautifulSoup(response, 'html.parser')
 hits = 0
 try:
+    new_mail = the_page.find(id='new_mail')
+    events = new_mail.descendants
+    for event in events:
+        if ('mail!' in str(event.string) and 'NavigableString' in str(event.__class__)):
+            hits += 1
+            loop.run_until_complete(post_slack(event.string))
+except Exception:
+    pass
+try:
     nyamess = the_page.find(id='nyamess')
     events = nyamess.descendants
     for event in events:
@@ -69,12 +79,13 @@ try:
 except Exception:
     pass
 try:
-    new_mail = the_page.find(id='new_mail')
-    events = new_mail.descendants
+    nyamess = the_page.find(id='nyamess_auktion')
+    events = nyamess.descendants
     for event in events:
-        if ('mail!' in str(event.string) and 'NavigableString' in str(event.__class__)):
-            hits += 1
-            loop.run_until_complete(post_slack(event.string))
+        for keyword in keywords_auktion:
+            if (keyword in str(event.string) and 'NavigableString' in str(event.__class__)):
+                hits += 1
+                loop.run_until_complete(post_slack(event.string))
 except Exception:
     pass
 
