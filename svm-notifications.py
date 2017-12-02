@@ -54,7 +54,7 @@ async def post_slack(event):
     try:
         async with sem, session.post(webhook, data=payload) as response:
             return await response.read()
-    except:
+    except Exception:
         report.write('')
 
 
