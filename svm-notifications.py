@@ -71,10 +71,10 @@ def load_settings():
 
 loop = asyncio.get_event_loop()
 sem = asyncio.Semaphore(5)
-logging.basicConfig(level=logging.WARNING, format='%(asctime)s %(levelname)s %(message)s', datefmt='%Y-%m-%d %H:%M:%S')
 session = aiohttp.ClientSession(connector=aiohttp.TCPConnector(verify_ssl=False))
 
 if __name__ == '__main__':
+    logging.basicConfig(level=logging.WARNING, format='%(asctime)s %(levelname)s %(message)s', datefmt='%Y-%m-%d %H:%M:%S')
     settings = load_settings()
     if settings is not False:
         url = 'http://www.svenskamagic.com/login.php'
