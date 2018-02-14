@@ -36,7 +36,9 @@ async def get_url(urlparse, params):
 def start_notifications(event_string, settings):
     global email_body
     if settings.get('slack_notifications') is True:
-        loop.run_until_complete(post_slack(event_string, settings))
+        response = loop.run_until_complete(post_slack(event_string, settings))
+        if response != 'ok':
+            logging.error('slack response: {}'.format(response)
     if settings.get('gmail_notifications') is True:
         email_body = email_body + '{}\n'.format(event_string, settings)
 
