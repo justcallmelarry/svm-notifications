@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+# -*- coding: utf-8 -*-
 from bs4 import BeautifulSoup
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
@@ -12,10 +12,11 @@ import ujson
 
 
 async def post_slack(event, settings):
-    payload_text = '{}{}'.format(settings['original_text'], event)
-    payload = ujson.dumps(payload_text)
+    payload = settings.get('payload_text')
+    payload['text'] = '{}{}'.format(settings.get('original_text'), event)
+    logging.debug(payload)
     try:
-        async with sem, session.post(settings['webhook'], data=payload) as response:
+        async with sem, session.post(settings['webhook'], data=ujson.dumps(payload)) as response:
             return await response.read()
     except Exception as e:
         logging.error('failed to post to slack: {}'.format(e))
@@ -37,8 +38,9 @@ def start_notifications(event_string, settings):
     global email_body
     if settings.get('slack_notifications') is True:
         response = loop.run_until_complete(post_slack(event_string, settings))
-        if response != 'ok':
-            logging.error('slack response: {}'.format(response)
+        logging.debug(response)
+        if response != b'ok':
+            logging.error('slack response: {}. \'{}{}\''.format(response, settings.get('original_text'), event_string))
     if settings.get('gmail_notifications') is True:
         email_body = email_body + '{}\n'.format(event_string, settings)
 
