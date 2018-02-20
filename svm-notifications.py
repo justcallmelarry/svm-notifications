@@ -85,7 +85,7 @@ if __name__ == '__main__':
         keywords_auktion = ['bud']
 
         response, status = loop.run_until_complete(get_url(url, params))
-        if response == 200:
+        if status == 200:
             try:
                 the_page = BeautifulSoup(response, 'html.parser')
             except Exception as e:
