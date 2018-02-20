@@ -13,25 +13,21 @@ import ujson
 
 async def post_slack(event, settings):
     payload = settings.get('payload_text')
-    payload['text'] = '{}{}'.format(settings.get('original_text'), event)
+    payload['text'] = f'{settings.get("original_text")}{event}'
     logging.debug(payload)
     try:
         async with sem, session.post(settings['webhook'], data=ujson.dumps(payload)) as response:
             return await response.read()
     except Exception as e:
-        logging.error('failed to post to slack: {}'.format(e))
+        logging.error(f'failed to post to slack: {e}')
 
 
 async def get_url(urlparse, params):
     try:
         async with sem, session.post(urlparse, data=params) as response:
-            if response.status == 200:
-                return await response.read()
-            else:
-                return 'ERROR'
+            return await response.read(), response.status
     except aiohttp.client_exceptions.ClientConnectorError as e:
-        logging.error('get url failed: {}'.format(e))
-        return e
+        return e, 404
 
 
 def start_notifications(event_string, settings):
@@ -40,9 +36,9 @@ def start_notifications(event_string, settings):
         response = loop.run_until_complete(post_slack(event_string, settings))
         logging.debug(response)
         if response != b'ok':
-            logging.error('slack response: {}. \'{}{}\''.format(response, settings.get('original_text'), event_string))
+            logging.error(f'slack response: {response}. \'{settings.get("original_text")}{event_string}\'')
     if settings.get('gmail_notifications') is True:
-        email_body = email_body + '{}\n'.format(event_string, settings)
+        email_body = email_body + '{event_string}\n'
 
 
 def load_settings():
@@ -88,62 +84,69 @@ if __name__ == '__main__':
         keywords = ['biz', 'betalt']
         keywords_auktion = ['bud']
 
-        response = loop.run_until_complete(get_url(url, params))
-        the_page = BeautifulSoup(response, 'html.parser')
-        hits = 0
+        response, status = loop.run_until_complete(get_url(url, params))
+        if response == 200:
+            try:
+                the_page = BeautifulSoup(response, 'html.parser')
+            except Exception as e:
+                logging.error(f'couldn\'t parse page: {e}')
+                the_page = ''
+            hits = 0
 
-        try:
-            new_mail = the_page.find(id='new_mail')
-            events = new_mail.descendants
-            for event in events:
-                if ('mail!' in str(event.string) and 'NavigableString' in str(event.__class__)):
-                    hits += 1
-                    start_notifications(event.string, settings)
-        except Exception as e:
-            pass
-
-        try:
-            nyamess = the_page.find(id='nyamess')
-            events = nyamess.descendants
-            for event in events:
-                for keyword in keywords:
-                    if (keyword in str(event.string) and 'NavigableString' in str(event.__class__)):
+            try:
+                new_mail = the_page.find(id='new_mail')
+                events = new_mail.descendants
+                for event in events:
+                    if ('mail!' in str(event.string) and 'NavigableString' in str(event.__class__)):
                         hits += 1
                         start_notifications(event.string, settings)
-        except Exception as e:
-            pass
+            except Exception as e:
+                pass
 
-        try:
-            nyamess = the_page.find(id='nyamess_auktion')
-            events = nyamess.descendants
-            for event in events:
-                for keyword in keywords_auktion:
-                    if (keyword in str(event.string) and 'NavigableString' in str(event.__class__)):
-                        hits += 1
-                        start_notifications(event.string, settings)
-        except Exception as e:
-            pass
+            try:
+                nyamess = the_page.find(id='nyamess')
+                events = nyamess.descendants
+                for event in events:
+                    for keyword in keywords:
+                        if (keyword in str(event.string) and 'NavigableString' in str(event.__class__)):
+                            hits += 1
+                            start_notifications(event.string, settings)
+            except Exception as e:
+                pass
 
-        if hits > 0:
-            logging.info('{}: new activity!\n'.format(now))
-            if settings.get('gmail_notifications') is True:
-                try:
-                    server = smtplib.SMTP('smtp.gmail.com:587')
-                    server.ehlo()
-                    server.starttls()
-                    server.login(settings('gmail_usr'), settings.get('gmail_app_pwd'))
+            try:
+                nyamess = the_page.find(id='nyamess_auktion')
+                events = nyamess.descendants
+                for event in events:
+                    for keyword in keywords_auktion:
+                        if (keyword in str(event.string) and 'NavigableString' in str(event.__class__)):
+                            hits += 1
+                            start_notifications(event.string, settings)
+            except Exception as e:
+                pass
 
-                    msg = MIMEMultipart()
-                    msg['From'] = settings.get('email_from')
-                    msg['To'] = settings.get('email_to')
-                    msg['Subject'] = 'New svm activity'
+            if hits > 0:
+                logging.info('f{now}: new activity!')
+                if settings.get('gmail_notifications') is True:
+                    try:
+                        server = smtplib.SMTP('smtp.gmail.com:587')
+                        server.ehlo()
+                        server.starttls()
+                        server.login(settings('gmail_usr'), settings.get('gmail_app_pwd'))
 
-                    msg.attach(MIMEText(email_body))
-                    server.sendmail(settings.get('email_from'), settings.get('email_to'), msg.as_string())
-                except Exception as e:
-                    logging.error('mail notification failed: {}'.format(e))
+                        msg = MIMEMultipart()
+                        msg['From'] = settings.get('email_from')
+                        msg['To'] = settings.get('email_to')
+                        msg['Subject'] = 'New svm activity'
+
+                        msg.attach(MIMEText(email_body))
+                        server.sendmail(settings.get('email_from'), settings.get('email_to'), msg.as_string())
+                    except Exception as e:
+                        logging.error(f'mail notification failed: {e}')
+            else:
+                logging.info(f'{now}: nothing new')
         else:
-            logging.info('{}: nothing new\n'.format(now))
+            logging.error(f'{status} couldn\'t load site: {response}')
 
 session.close()
 loop.close()
