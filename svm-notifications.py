@@ -36,7 +36,8 @@ async def post_slack(event, settings):
 
 async def get_url(urlparse, params):
     try:
-        async with sem, session.post(urlparse, data=params) as response:
+        headers = {'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/39.0.2171.95 Safari/537.36'}
+        async with sem, session.post(urlparse, data=params, headers=headers) as response:
             return await response.read(), response.status
     except aiohttp.client_exceptions.ClientConnectorError as e:
         return e, 404
