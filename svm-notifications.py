@@ -11,6 +11,8 @@ def find_id(search_id):
     global hits
     try:
         search_term = the_page.find(id=search_id)
+        if search_term is None:
+            return
         events = search_term.descendants
         for event in events:
             for keyword in keywords:
@@ -67,7 +69,7 @@ if __name__ == '__main__':
     if settings is not False:
         hits = 0
         search_ids = ['nyamess_auktion', 'new_mail', 'nyamess']  # id's to look for when logged in
-        keywords = ['biz', 'betalt', 'mail!', 'bud']  # string to look for in id if found
+        keywords = ['biz', 'betalt', 'mail!', 'bud', '-']  # string to look for in id if found
 
         response, status = loop.run_until_complete(get_url(settings.get('url'), settings.get('params')))
         if status == 200:
