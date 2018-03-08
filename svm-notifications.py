@@ -7,7 +7,7 @@ import os
 import ujson
 
 
-def find_id(search_id):
+async def find_id(search_id, the_page):
     global hits
     try:
         search_term = the_page.find(id=search_id)
@@ -18,7 +18,7 @@ def find_id(search_id):
             for keyword in keywords:
                 if (keyword in str(event.string) and 'NavigableString' in str(event.__class__)):
                     hits += 1
-                    post_slack(event.string, settings)
+                    await post_slack(event.string, settings)
     except Exception as e:
         return
 
@@ -59,31 +59,34 @@ def load_settings():
         return False
 
 
+async def main():
+    global hits
+    hits = 0
+    response, status = loop.run_until_complete(get_url(settings.get('url'), settings.get('params')))
+    if status == 200:
+        try:
+            the_page = BeautifulSoup(response, 'html.parser')
+        except Exception as e:
+            logging.error(f'couldn\'t parse page: {e}')
+            return
+        for s in search_ids:
+            tasks.append(find_id(s, the_page))
+    else:
+        logging.error(f'{status}: couldn\'t load site: {response}')
+    await asyncio.gather(*tasks)
+
 loop = asyncio.get_event_loop()
 sem = asyncio.Semaphore(5)
 session = aiohttp.ClientSession(connector=aiohttp.TCPConnector(verify_ssl=False))
 
 if __name__ == '__main__':
     logging.basicConfig(level=logging.WARNING, format='%(asctime)s %(levelname)s %(message)s', datefmt='%Y-%m-%d %H:%M:%S')
-    settings = load_settings()
+    settings, tasks = load_settings(), []
+    search_ids = ['nyamess_auktion', 'new_mail', 'nyamess']  # id's to look for when logged in
+    keywords = ['biz', 'betalt', 'mail!', 'bud']  # string to look for in id if found
 
     if settings is not False:
-        hits = 0
-        search_ids = ['nyamess_auktion', 'new_mail', 'nyamess']  # id's to look for when logged in
-        keywords = ['biz', 'betalt', 'mail!', 'bud', '-']  # string to look for in id if found
-
-        response, status = loop.run_until_complete(get_url(settings.get('url'), settings.get('params')))
-        if status == 200:
-            try:
-                the_page = BeautifulSoup(response, 'html.parser')
-            except Exception as e:
-                logging.error(f'couldn\'t parse page: {e}')
-                the_page = ''
-
-            for s in search_ids:
-                find_id(s)
-        else:
-            logging.error(f'{status}: couldn\'t load site: {response}')
+        loop.run_until_complete(main())
 
 session.close()
 loop.close()
