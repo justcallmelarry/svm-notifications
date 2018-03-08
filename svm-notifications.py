@@ -62,7 +62,7 @@ def load_settings():
 async def main():
     global hits
     hits = 0
-    response, status = loop.run_until_complete(get_url(settings.get('url'), settings.get('params')))
+    response, status = await get_url(settings.get('url'), settings.get('params'))
     if status == 200:
         try:
             the_page = BeautifulSoup(response, 'html.parser')
