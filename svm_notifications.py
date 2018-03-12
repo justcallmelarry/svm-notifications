@@ -87,6 +87,5 @@ if __name__ == '__main__':
 
     if settings is not False:
         loop.run_until_complete(main())
-
-session.close()
-loop.close()
+    session.close()
+    loop.close()

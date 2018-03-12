@@ -1,44 +1,16 @@
 # -*- coding: utf-8 -*-
 from bs4 import BeautifulSoup
-import aiohttp
+from svm_notifications import get_url, load_settings, session
 import asyncio
 import logging
-import os
-import ujson
 import sys
-
-
-async def get_url(urlparse, params):
-    try:
-        headers = {'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/39.0.2171.95 Safari/537.36'}
-        async with sem, session.post(urlparse, data=params, headers=headers) as response:
-            return await response.read(), response.status
-    except aiohttp.client_exceptions.ClientConnectorError as e:
-        return e, 404
-
-
-def load_settings():
-    try:
-        with open(os.path.join(os.path.dirname(__file__), 'settings.json'), 'r', encoding='utf-8') as json_file:
-            json_data = ujson.loads(json_file.read())
-            settings = {}
-            settings['url'] = 'https://www.svenskamagic.com/login.php'
-            settings['url2'] = 'https://www.svenskamagic.com/marketplace/index.php?what=havewant'
-            settings['params'] = {'loginusername': json_data.get('svm_usr'), 'password': json_data.get('svm_pwd'), 'action': 'process_login_attempt', 'x': 14, 'y': 10}
-            settings['webhook'] = json_data.get('slack_webhook')
-            settings['payload_text'] = json_data.get('slack_payload')
-            settings['original_text'] = json_data.get('slack_payload').get('text')
-        return settings
-    except Exception as e:
-        logging.error(e)
-        return False
 
 
 async def main():
     global hits
     hits = 0
     response, status = await get_url(settings.get('url'), settings.get('params'))
-    response, status = await get_url(settings.get('url2'), settings.get('params'))
+    response, status = await get_url('https://www.svenskamagic.com/marketplace/index.php?what=havewant', '')
     if status == 200:
         try:
             the_page = BeautifulSoup(response, 'html.parser')
@@ -66,9 +38,8 @@ async def main():
         logging.error(f'{status}: couldn\'t load site: {response}')
     await asyncio.gather(*tasks)
 
-loop = asyncio.get_event_loop()
+loopz = asyncio.get_event_loop()
 sem = asyncio.Semaphore(5)
-session = aiohttp.ClientSession(connector=aiohttp.TCPConnector(verify_ssl=False))
 sys.setrecursionlimit(10000)
 
 if __name__ == '__main__':
@@ -78,7 +49,7 @@ if __name__ == '__main__':
     keywords = ['biz', 'betalt', 'mail!', 'bud']  # string to look for in id if found
 
     if settings is not False:
-        loop.run_until_complete(main())
+        loopz.run_until_complete(main())
 
 session.close()
-loop.close()
+loopz.close()
