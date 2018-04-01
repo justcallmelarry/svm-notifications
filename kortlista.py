@@ -45,8 +45,6 @@ sys.setrecursionlimit(10000)
 if __name__ == '__main__':
     logging.basicConfig(level=logging.WARNING, format='%(asctime)s %(levelname)s %(message)s', datefmt='%Y-%m-%d %H:%M:%S')
     settings, tasks = load_settings(), []
-    search_ids = ['nyamess_auktion', 'new_mail', 'nyamess']  # id's to look for when logged in
-    keywords = ['biz', 'betalt', 'mail!', 'bud']  # string to look for in id if found
 
     if settings is not False:
         loopz.run_until_complete(main())
