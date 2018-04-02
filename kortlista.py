@@ -75,7 +75,6 @@ async def main():
                     card_count = card.parent.text[:card.parent.text.find(' ')]
                     while card_set.name != 'b':
                         card_set = card_set.previous_sibling
-                    # print(f'{card_count}\t{card_name.strip()}\t{card_set.string}')
                     if card_name not in svm_cards:
                         svm_cards[card_name] = {}
                     set_or_add(svm_cards[card_name], card_set.string, int(card_count))
