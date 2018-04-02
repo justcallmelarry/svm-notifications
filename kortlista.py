@@ -101,7 +101,7 @@ async def main():
             logging.error(f'{l[2]} - {set_info.get(l[4])} - {l[1]}: {e}')
     await session.close()
     added, removed, modified, same = dict_compare(svm_cards, local_cards)
-    print(f'Added: {ujson.dumps(added)}\nRemoved: {ujson.dumps(removed)}\nModified: {ujson.dumps(modified)}')
+    print(f'only svm: {ujson.dumps(added)}\nonly local: {ujson.dumps(removed)}\nmismatch: {ujson.dumps(modified)}')
 
 
 loopz = asyncio.get_event_loop()
