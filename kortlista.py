@@ -1,4 +1,4 @@
-# -*- coding: utf-8 -*-
+# coding: utf-8
 from bs4 import BeautifulSoup as BS
 from svm_notifications import get_url, load_settings, session
 import aiomysql

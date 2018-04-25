@@ -45,7 +45,7 @@ async def get_url(urlparse, params):
 
 def load_settings():
     try:
-        with open(os.path.join(os.path.dirname(__file__), 'settings.json'), 'r', encoding='utf-8') as json_file:
+        with open(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'settings.json'), 'r', encoding='utf-8') as json_file:
             json_data = ujson.loads(json_file.read())
             settings = {}
             settings['url'] = 'https://www.svenskamagic.com/login.php'
